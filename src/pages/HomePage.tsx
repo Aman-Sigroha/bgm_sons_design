@@ -13,7 +13,7 @@ const HomePage = () => {
     {
       icon: <Zap className="w-12 h-12 text-blue-700 mb-4" />,
       title: 'Eco-Friendly Materials',
-      description: 'Sustainable and durable materials that are kind to the environment.'
+      description: 'Sustainable and durable materials'
     },
     {
       icon: <Clock className="w-12 h-12 text-blue-700 mb-4" />,
