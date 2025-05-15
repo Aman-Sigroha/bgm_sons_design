@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Package, Trash2, Edit, PlusCircle, Search, Filter, RefreshCw, LogOut } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Package, Trash2, Edit, PlusCircle, Search, Filter, RefreshCw, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Product {
@@ -115,7 +115,7 @@ const AdminDashboardPage = () => {
   
   // Handle logout
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth');
+    localStorage.removeItem('adminToken');
     navigate('/admin/login');
   };
   
@@ -194,14 +194,18 @@ const AdminDashboardPage = () => {
             <div className="flex items-center space-x-4">
               <Package size={24} />
               <h1 className="text-xl font-bold">BGM Sons Admin</h1>
+              <User size={24} className="ml-4 text-white" />
             </div>
-            <button 
-              onClick={handleLogout}
-              className="flex items-center space-x-2 bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-md transition-colors duration-300"
-            >
-              <LogOut size={18} />
-              <span>Logout</span>
-            </button>
+            <div className="flex items-center space-x-2">
+              <User size={22} className="text-white" />
+              <button 
+                onClick={handleLogout}
+                className="flex items-center space-x-2 bg-blue-800 hover:bg-blue-700 px-4 py-2 rounded-md transition-colors duration-300"
+              >
+                <LogOut size={18} />
+                <span>Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>

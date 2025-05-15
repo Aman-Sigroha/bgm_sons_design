@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock } from 'lucide-react';
+import axios from 'axios';
 
 const AdminLoginPage = () => {
   const [formData, setFormData] = useState({
@@ -56,21 +57,19 @@ const AdminLoginPage = () => {
     setLoginError('');
     
     try {
-      // In a real application, you would authenticate with a backend API
-      // This is a simulation for demo purposes
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate successful login with demo credentials
-      if (formData.username === 'admin' && formData.password === 'admin123') {
-        // Store auth token in localStorage (in a real app, this would be a JWT)
-        localStorage.setItem('adminAuth', 'true');
-        // Redirect to admin dashboard
+      const response = await axios.post('/api/admin/login', formData);
+      if (response.data && response.data.token) {
+        localStorage.setItem('adminToken', response.data.token);
         navigate('/admin/dashboard');
       } else {
-        setLoginError('Invalid username or password');
+        setLoginError('Login failed. Please try again.');
       }
-    } catch (error) {
-      setLoginError('There was a problem logging in. Please try again.');
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.message) {
+        setLoginError(error.response.data.message);
+      } else {
+        setLoginError('There was a problem logging in. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
