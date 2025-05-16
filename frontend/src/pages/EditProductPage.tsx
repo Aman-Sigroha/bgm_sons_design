@@ -24,18 +24,34 @@ const EditProductPage = () => {
   });
   const [error, setError] = useState('');
   const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Redirect to login if no token
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      navigate('/admin/login');
+    }
+  }, [navigate]);
 
   useEffect(() => {
-    const products = JSON.parse(localStorage.getItem('products') || '[]');
-    const product = products.find((p) => p.id === Number(id));
-    if (!product) {
-      setNotFound(true);
-    } else {
-      setForm({ ...product, images: product.images && product.images.length ? product.images : [''] });
-    }
+    const fetchProduct = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/products/${id}`);
+        if (!res.ok) throw new Error('Not found');
+        const product = await res.json();
+        setForm({ ...product, images: product.images && product.images.length ? product.images : [''] });
+        setNotFound(false);
+      } catch {
+        setNotFound(true);
+      }
+      setLoading(false);
+    };
+    fetchProduct();
   }, [id]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: { target: { name: any; value: any; }; }) => {
     const { name, value } = e.target;
     if (name.startsWith('image-')) {
       const idx = parseInt(name.split('-')[1]);
@@ -51,27 +67,37 @@ const EditProductPage = () => {
     setForm({ ...form, images: [...form.images, ''] });
   };
 
-  const handleRemoveImage = (idx) => {
+  const handleRemoveImage = (idx: number) => {
     const newImages = form.images.filter((_, i) => i !== idx);
     setForm({ ...form, images: newImages.length ? newImages : [''] });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     if (!form.name || !form.category || !form.subcategory || !form.images.filter(Boolean).length || !form.created || !form.description || !form.specification || !form.features) {
       setError('All fields are required, and at least one image.');
       return;
     }
-    const products = JSON.parse(localStorage.getItem('products') || '[]');
-    const idx = products.findIndex((p) => p.id === Number(id));
-    if (idx === -1) {
-      setNotFound(true);
-      return;
+    try {
+      const res = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, images: form.images.filter(Boolean) }),
+      });
+      if (!res.ok) throw new Error('Failed to update product');
+      navigate('/admin/dashboard');
+    } catch {
+      setError('Failed to update product. Please try again.');
     }
-    products[idx] = { ...products[idx], ...form, images: form.images.filter(Boolean) };
-    localStorage.setItem('products', JSON.stringify(products));
-    navigate('/admin/dashboard');
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-xl text-blue-900 font-bold">Loading product...</div>
+      </div>
+    );
+  }
 
   if (notFound) {
     return (
@@ -114,7 +140,7 @@ const EditProductPage = () => {
                       className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                     />
                     {img && (
-                      <img src={img} alt={`Preview ${idx + 1}`} className="h-14 w-14 object-cover rounded border border-gray-200 bg-white" onError={e => (e.target.style.display='none')} />
+                      <img src={img} alt={`Preview ${idx + 1}`} className="h-14 w-14 object-cover rounded border border-gray-200 bg-white" onError={(e) => { if (e.target instanceof HTMLImageElement) e.target.style.display = 'none'; }} />
                     )}
                     {form.images.length > 1 && (
                       <button type="button" onClick={() => handleRemoveImage(idx)} className="text-red-600 hover:text-red-800 p-1 rounded-full" title="Remove image"><X size={18} /></button>

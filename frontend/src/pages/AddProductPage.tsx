@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, PlusCircle, X } from 'lucide-react';
 
-const categoryOptions = [
+const initialCategories = [
   { value: 'automotive', label: 'Automotive' },
   { value: 'industrial', label: 'Industrial' },
   { value: 'branding', label: 'Branding' },
@@ -22,8 +22,49 @@ const AddProductPage = () => {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [categories, setCategories] = useState(initialCategories);
+  const [newCategory, setNewCategory] = useState('');
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
-  const handleChange = (e) => {
+  // Redirect to login if no token
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      navigate('/admin/login');
+    }
+  }, [navigate]);
+
+  const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value === '__add_new__') {
+      setShowNewCategoryInput(true);
+    } else {
+      setForm({ ...form, category: e.target.value });
+      setShowNewCategoryInput(false);
+      setNewCategory('');
+    }
+  };
+
+  const handleAddCategory = () => {
+    if (newCategory.trim() && !categories.some(c => c.value === newCategory.trim().toLowerCase())) {
+      const newCat = { value: newCategory.trim().toLowerCase(), label: newCategory.trim() };
+      setCategories([...categories, newCat]);
+      setForm({ ...form, category: newCat.value });
+      setShowNewCategoryInput(false);
+      setNewCategory('');
+    }
+  };
+
+  // Image upload handler (placeholder)
+  const handleImageFile = async (file: File, idx: number) => {
+    // TODO: Replace with real upload logic (e.g., Cloudinary, S3, or backend endpoint)
+    // For now, just use a local URL for preview
+    const url = URL.createObjectURL(file);
+    const newImages = [...form.images];
+    newImages[idx] = url;
+    setForm({ ...form, images: newImages });
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (name.startsWith('image-')) {
       const idx = parseInt(name.split('-')[1]);
@@ -39,27 +80,31 @@ const AddProductPage = () => {
     setForm({ ...form, images: [...form.images, ''] });
   };
 
-  const handleRemoveImage = (idx) => {
+  const handleRemoveImage = (idx: number) => {
     const newImages = form.images.filter((_, i) => i !== idx);
     setForm({ ...form, images: newImages.length ? newImages : [''] });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
     if (!form.name || !form.category || !form.subcategory || !form.images.filter(Boolean).length || !form.created || !form.description || !form.specification || !form.features) {
       setError('All fields are required, and at least one image.');
       return;
     }
-    // For now, store in localStorage (simulate backend)
-    const products = JSON.parse(localStorage.getItem('products') || '[]');
-    const newProduct = {
-      id: products.length ? Math.max(...products.map(p => p.id)) + 1 : 1,
-      ...form,
-      images: form.images.filter(Boolean),
-    };
-    products.push(newProduct);
-    localStorage.setItem('products', JSON.stringify(products));
-    navigate('/admin/dashboard');
+    try {
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...form,
+          images: form.images.filter(Boolean),
+        }),
+      });
+      if (!res.ok) throw new Error('Failed to add product');
+      navigate('/admin/dashboard');
+    } catch (err) {
+      setError('Failed to add product. Please try again.');
+    }
   };
 
   return (
@@ -84,15 +129,16 @@ const AddProductPage = () => {
                 {form.images.map((img, idx) => (
                   <div key={idx} className="flex items-center gap-4 bg-gray-50 rounded-lg p-2">
                     <input
-                      type="text"
-                      name={`image-${idx}`}
-                      value={img}
-                      onChange={handleChange}
-                      placeholder={`Image URL #${idx + 1}`}
-                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                      type="file"
+                      accept="image/*"
+                      onChange={e => {
+                        if (e.target.files && e.target.files[0]) handleImageFile(e.target.files[0], idx);
+                      }}
+                      className="block text-sm text-gray-500"
+                      title="Choose image file"
                     />
                     {img && (
-                      <img src={img} alt={`Preview ${idx + 1}`} className="h-14 w-14 object-cover rounded border border-gray-200 bg-white" onError={e => (e.target.style.display='none')} />
+                      <img src={img} alt={`Preview ${idx + 1}`} className="h-14 w-14 object-cover rounded border border-gray-200 bg-white" onError={e => { const t = e.target as HTMLImageElement; t.style.display = 'none'; }} />
                     )}
                     {form.images.length > 1 && (
                       <button type="button" onClick={() => handleRemoveImage(idx)} className="text-red-600 hover:text-red-800 p-1 rounded-full" title="Remove image"><X size={18} /></button>
@@ -105,20 +151,29 @@ const AddProductPage = () => {
             {/* Basic Info Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Enter product name" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
-              </div>
-              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select name="category" value={form.category} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                  {categoryOptions.map(opt => (
+                <select name="category" value={form.category} onChange={handleCategoryChange} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  {categories.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
+                  <option value="__add_new__">+ Add new category...</option>
                 </select>
+                {showNewCategoryInput && (
+                  <div className="flex mt-2 gap-2">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={e => setNewCategory(e.target.value)}
+                      placeholder="New category name"
+                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+                    <button type="button" onClick={handleAddCategory} className="px-3 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800">Add</button>
+                  </div>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory</label>
-                <input type="text" name="subcategory" value={form.subcategory} onChange={handleChange} placeholder="Enter subcategory" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Enter product name" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Created Date</label>

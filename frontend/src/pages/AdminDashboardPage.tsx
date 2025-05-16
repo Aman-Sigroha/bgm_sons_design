@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Package, Trash2, Edit, PlusCircle, Search, Filter, RefreshCw, LogOut, User } from 'lucide-react';
+import { Package, Trash2, Edit, PlusCircle, Search, RefreshCw, LogOut, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Product {
-  id: number;
+  id: string;
   name: string;
   category: string;
-  subcategory: string;
   images: string[];
   created: string;
   description: string;
@@ -27,110 +26,41 @@ const AdminDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [showAddProductModal, setShowAddProductModal] = useState(false);
+  const [] = useState(false);
   const [showEditProductModal, setShowEditProductModal] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; productId: number | null }>({ open: false, productId: null });
+  const [editingProduct] = useState<Product | null>(null);
+  const [snackbar, setSnackbar] = useState<{ open: boolean; productId: string | null }>({ open: false, productId: null });
   
   const navigate = useNavigate();
   
-  // Mock data for admin dashboard
+  // Redirect to login if no token
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      navigate('/admin/login');
+    }
+  }, [navigate]);
+  
+  // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
-      // In a real app, this would be an API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockProducts: Product[] = [
-        {
-          id: 1,
-          name: 'Automotive Warning Labels',
-          category: 'automotive',
-          subcategory: 'Warning Labels',
-          images: ['https://images.pexels.com/photos/5980743/pexels-photo-5980743.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
-          created: '2023-08-15',
-          description: 'High-visibility warning labels for automotive safety.',
-          specification: 'Material: Vinyl, Size: 10x5cm, Adhesive: Permanent',
-          features: 'Weatherproof, UV resistant, Customizable',
-        },
-        {
-          id: 2,
-          name: 'Industrial Equipment Tags',
-          category: 'industrial',
-          subcategory: 'Equipment Tags',
-          images: ['https://images.pexels.com/photos/8230075/pexels-photo-8230075.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
-          created: '2023-09-22',
-          description: 'Durable tags for industrial equipment identification.',
-          specification: 'Material: Aluminum, Size: 8x4cm, Color: Silver',
-          features: 'Corrosion resistant, Laser engraved, Long-lasting',
-        },
-        {
-          id: 3,
-          name: 'Product Branding Labels',
-          category: 'branding',
-          subcategory: 'Product Labels',
-          images: ['https://images.pexels.com/photos/2536965/pexels-photo-2536965.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
-          created: '2023-10-05',
-          description: 'Premium branding labels for retail products.',
-          specification: 'Material: Paper, Finish: Glossy, Size: 6x3cm',
-          features: 'Full color, Custom shapes, Eco-friendly',
-        },
-        {
-          id: 4,
-          name: 'Custom Shape Die-Cut Labels',
-          category: 'custom',
-          subcategory: 'Die-Cut',
-          images: ['https://images.pexels.com/photos/1303092/pexels-photo-1303092.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
-          created: '2023-11-18',
-          description: 'Die-cut labels in any custom shape for unique needs.',
-          specification: 'Material: Polyester, Size: Custom, Finish: Matte',
-          features: 'Any shape, Strong adhesive, Tear-resistant',
-        },
-        {
-          id: 5,
-          name: 'Safety Instruction Labels',
-          category: 'industrial',
-          subcategory: 'Safety Labels',
-          images: ['https://images.pexels.com/photos/3862130/pexels-photo-3862130.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
-          created: '2024-01-30',
-          description: 'Clear safety instructions for industrial environments.',
-          specification: 'Material: Polycarbonate, Size: 12x6cm, Print: Double-sided',
-          features: 'Scratch resistant, Easy to clean, High contrast',
-        },
-        {
-          id: 6,
-          name: 'Vehicle Identification Labels',
-          category: 'automotive',
-          subcategory: 'Identification',
-          images: ['https://images.pexels.com/photos/164634/pexels-photo-164634.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
-          created: '2024-02-14',
-          description: 'Labels for vehicle identification and tracking.',
-          specification: 'Material: PET, Size: 9x4cm, Barcode: Yes',
-          features: 'Tamper-evident, Waterproof, Barcode/QR support',
-        },
-        {
-          id: 7,
-          name: 'Eco-Friendly Labels',
-          category: 'custom',
-          subcategory: 'Sustainable',
-          images: ['https://images.pexels.com/photos/4065891/pexels-photo-4065891.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2'],
-          created: '2024-03-22',
-          description: 'Sustainable labels made from recycled materials.',
-          specification: 'Material: Recycled paper, Size: 7x3cm, Finish: Uncoated',
-          features: 'Biodegradable, Compostable, Non-toxic inks',
-        }
-      ];
-      
-      setProducts(mockProducts);
+      setIsLoading(true);
+      try {
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Failed to fetch products');
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        setProducts([]);
+      }
       setIsLoading(false);
     };
-    
     fetchProducts();
   }, []);
   
   // Filter products based on search and category
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.subcategory.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -147,12 +77,20 @@ const AdminDashboardPage = () => {
   };
   
   // Handle delete product
-  const handleDeleteProduct = (productId: number) => {
+  const handleDeleteProduct = (productId: string) => {
     setSnackbar({ open: true, productId });
   };
   
-  const confirmDeleteProduct = () => {
-    setProducts(products.filter(product => product.id !== snackbar.productId));
+  const confirmDeleteProduct = async () => {
+    if (!snackbar.productId) return;
+    try {
+      const res = await fetch(`/api/products/${snackbar.productId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setProducts(products.filter(product => product.id !== snackbar.productId));
+      }
+    } catch (err) {
+      // Optionally show error
+    }
     setSnackbar({ open: false, productId: null });
   };
   
@@ -228,7 +166,7 @@ const AdminDashboardPage = () => {
             <div className="relative flex-1">
               <input
                 type="text"
-                placeholder="Search by name or subcategory..."
+                placeholder="Search by name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
@@ -312,7 +250,6 @@ const AdminDashboardPage = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900 capitalize">{product.category}</div>
-                          <div className="text-sm text-gray-500">{product.subcategory}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{product.created}</div>
