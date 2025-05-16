@@ -77,7 +77,7 @@ const ProductsPage = () => {
         }
       }, 100);
     }
-  }, [location]);
+  }, [location, categories]);
 
   if (loading) return <div className="container mx-auto px-4 py-16 text-center text-xl">Loading...</div>;
   if (error) return <div className="container mx-auto px-4 py-16 text-center text-red-600 text-xl">{error}</div>;
@@ -146,8 +146,8 @@ const ProductsPage = () => {
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <div className="h-64 overflow-hidden">
-                  <img
-                    src={product.images?.[0] || ''}
+  <img
+    src={product.images?.[0] || '/placeholder.png'}
                     alt={product.name}
                     className="w-full h-full object-cover transform transition-transform duration-500 hover:scale-110"
                   />

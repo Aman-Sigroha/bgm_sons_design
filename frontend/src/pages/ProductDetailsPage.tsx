@@ -28,23 +28,25 @@ const ProductDetailsPage = () => {
   });
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
+useEffect(() => {
+    const controller = new AbortController();
     const fetchProduct = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const res = await fetch(`/api/products/${id}`);
-        if (!res.ok) throw new Error('Product not found');
-        const data = await res.json();
-        setProduct(data);
-      } catch (err: any) {
-        setError(err.message || 'Error loading product');
-      } finally {
-        setLoading(false);
-      }
-    };
+       setLoading(true);
+       setError('');
+       try {
+        const res = await fetch(`/api/products/${id}`, { signal: controller.signal });
+         if (!res.ok) throw new Error('Product not found');
+         const data = await res.json();
+        if (!controller.signal.aborted) setProduct(data);
+       } catch (err: any) {
+         setError(err.message || 'Error loading product');
+       } finally {
+        if (!controller.signal.aborted) setLoading(false);
+       }
+     };
     if (id) fetchProduct();
-  }, [id]);
+    return () => controller.abort();
+   }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -95,9 +97,10 @@ const ProductDetailsPage = () => {
               <div className="mb-4">
                 <h2 className="text-lg font-bold text-blue-900 mb-1">Features</h2>
                 <ul className="list-disc list-inside text-gray-700">
-                  {product.features.split('\n').map((f, i) => (
-                    <li key={i}>{f}</li>
-                  ))}
+ {product.features
+     .split('\n')
+     .filter(Boolean)
+     .map((f, i) => <li key={i}>{f}</li>)}
                 </ul>
               </div>
             )}

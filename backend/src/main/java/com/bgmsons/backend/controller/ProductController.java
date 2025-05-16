@@ -2,24 +2,35 @@ package com.bgmsons.backend.controller;
 
 import com.bgmsons.backend.model.Product;
 import com.bgmsons.backend.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import jakarta.validation.Valid;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+
+    public ProductController(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     // Add product (admin)
     @PostMapping
-    public ResponseEntity<Product> addProduct(@RequestBody Product product) {
+    public ResponseEntity<Product> addProduct(@RequestBody @Valid Product product,
+                                              UriComponentsBuilder uriBuilder) {
         Product saved = productRepository.save(product);
-        return ResponseEntity.ok(saved);
-    }
+        URI location = uriBuilder.path("/api/products/{id}")
+                                 .build(saved.getId());
+        return ResponseEntity.created(location).body(saved);
+     }
 
     // Edit product (admin)
     @PutMapping("/{id}")
@@ -45,9 +56,9 @@ public class ProductController {
 
     // Get all products (admin/user)
     @GetMapping
-    public ResponseEntity<Object> getAllProducts() {
+    public ResponseEntity<List<Product>> getAllProducts() {
         return ResponseEntity.ok(productRepository.findAll());
-    }
+     }
 
     // Get product by id (admin/user)
     @GetMapping("/{id}")

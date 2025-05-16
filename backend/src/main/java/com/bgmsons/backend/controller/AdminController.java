@@ -76,4 +76,17 @@ public class AdminController {
         response.put("message", "Admin created successfully");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/verify")
+    public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body("Missing or invalid Authorization header");
+        }
+        String token = authHeader.substring(7);
+        if (JwtUtil.isTokenValid(token)) {
+            return ResponseEntity.ok().body("Token is valid");
+        } else {
+            return ResponseEntity.status(401).body("Invalid or expired token");
+        }
+    }
 } 

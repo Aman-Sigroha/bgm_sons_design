@@ -26,7 +26,7 @@ const AdminDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [showEditProductModal, setShowEditProductModal] = useState(false);
   const [editingProduct] = useState<Product | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; productId: string | null }>({ open: false, productId: null });
@@ -38,7 +38,24 @@ const AdminDashboardPage = () => {
     const token = localStorage.getItem('adminToken');
     if (!token) {
       navigate('/admin/login');
+      return;
     }
+    // Verify token with backend
+    fetch('/api/admin/verify', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+      .then(res => {
+        if (res.ok) {
+          setIsAuthorized(true);
+        } else {
+          localStorage.removeItem('adminToken');
+          navigate('/admin/login');
+        }
+      })
+      .catch(() => {
+        localStorage.removeItem('adminToken');
+        navigate('/admin/login');
+      });
   }, [navigate]);
   
   // Fetch products from backend
@@ -46,7 +63,10 @@ const AdminDashboardPage = () => {
     const fetchProducts = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch('/api/products');
+        const token = localStorage.getItem('adminToken');
+        const res = await fetch('/api/products', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (!res.ok) throw new Error('Failed to fetch products');
         const data = await res.json();
         setProducts(data);
@@ -55,8 +75,8 @@ const AdminDashboardPage = () => {
       }
       setIsLoading(false);
     };
-    fetchProducts();
-  }, []);
+    if (isAuthorized) fetchProducts();
+  }, [isAuthorized]);
   
   // Filter products based on search and category
   const filteredProducts = products.filter(product => {
@@ -84,7 +104,11 @@ const AdminDashboardPage = () => {
   const confirmDeleteProduct = async () => {
     if (!snackbar.productId) return;
     try {
-      const res = await fetch(`/api/products/${snackbar.productId}`, { method: 'DELETE' });
+      const token = localStorage.getItem('adminToken');
+      const res = await fetch(`/api/products/${snackbar.productId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (res.ok) {
         setProducts(products.filter(product => product.id !== snackbar.productId));
       }
@@ -123,6 +147,8 @@ const AdminDashboardPage = () => {
       </div>
     </div>
   );
+  
+  if (!isAuthorized) return null;
   
   return (
     <div className="min-h-screen bg-gray-100">
