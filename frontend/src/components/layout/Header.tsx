@@ -43,10 +43,11 @@ const Header = () => {
     { name: 'Custom Designs', path: '/products#custom' },
   ];
 
-  const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false);
+  const [isOverProductButton, setIsOverProductButton] = useState(false);
+  const [isOverProductList, setIsOverProductList] = useState(false);
 
   const toggleProductsDropdown = () => {
-    setIsProductsDropdownOpen((prev) => !prev);
+    setIsOverProductButton((prev) => !prev);
   };
 
   return (
@@ -69,19 +70,21 @@ const Header = () => {
               <button
                 className="flex items-center text-blue-900 hover:text-blue-700 font-medium focus:outline-none"
                 onClick={toggleProductsDropdown}
-                onMouseEnter={() => setIsProductsDropdownOpen(true)}
-                onMouseLeave={() => setIsProductsDropdownOpen(false)}
+                onMouseEnter={() => setIsOverProductButton(true)}
+                onMouseLeave={() => setTimeout(() => {
+                  setIsOverProductButton(false); 
+                }, 100)}
                 aria-haspopup="true"
-                aria-expanded={isProductsDropdownOpen ? 'true' : 'false'}
+                aria-expanded={isOverProductButton || isOverProductList ? 'true' : 'false'}
               >
                 Products <ChevronDown className="ml-1 h-4 w-4" />
               </button>
               <div
                 className={`absolute left-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 transition-all duration-300 ${
-                  isProductsDropdownOpen ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
+                  isOverProductButton || isOverProductList ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
                 }`}
-                onMouseEnter={() => setIsProductsDropdownOpen(true)}
-                onMouseLeave={() => setIsProductsDropdownOpen(false)}
+                onMouseEnter={() => setIsOverProductList(true)}
+                onMouseLeave={() => setIsOverProductList(false)}
               >
                 <div className="py-1">
                   {productCategories.map((category) => (
