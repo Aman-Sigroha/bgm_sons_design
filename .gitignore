@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 backend/target
+backend/temp.properties
+
