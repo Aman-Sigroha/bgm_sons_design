@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -76,11 +76,10 @@ const ProductCarousel = () => {
 
   // Auto-play functionality
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: number;
     
     if (isAutoPlaying) {
-      interval = setInterval(() => {
-        nextSlide();
+      interval = window.setInterval(() => {
       }, 5000);
     }
     
