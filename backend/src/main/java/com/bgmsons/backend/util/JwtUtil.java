@@ -7,35 +7,36 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import java.util.Date;
 
 public class JwtUtil {
-    private static final String SECRET_KEY = "your_secret_key_here";
-    private static final long EXPIRATION_TIME = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
-    public static String generateToken(String username) {
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
-                .compact();
-    }
+  private static final String SECRET_KEY = System.getenv("BGM_JWT_SECRET_KEY");
+  private static final long EXPIRATION_TIME = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
-    public static String extractUsername(String token) {
-        return getClaims(token).getSubject();
-    }
+  public static String generateToken(String username) {
+    return Jwts.builder()
+        .setSubject(username)
+        .setIssuedAt(new Date())
+        .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+        .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+        .compact();
+  }
 
-    public static boolean isTokenValid(String token) {
-        try {
-            Claims claims = getClaims(token);
-            return !claims.getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
-        }
-    }
+  public static String extractUsername(String token) {
+    return getClaims(token).getSubject();
+  }
 
-    private static Claims getClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
-                .parseClaimsJws(token)
-                .getBody();
+  public static boolean isTokenValid(String token) {
+    try {
+      Claims claims = getClaims(token);
+      return !claims.getExpiration().before(new Date());
+    } catch (Exception e) {
+      return false;
     }
-} 
+  }
+
+  private static Claims getClaims(String token) {
+    return Jwts.parser()
+        .setSigningKey(SECRET_KEY)
+        .parseClaimsJws(token)
+        .getBody();
+  }
+}
