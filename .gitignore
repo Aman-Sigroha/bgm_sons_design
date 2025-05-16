@@ -27,3 +27,4 @@ backend/target
 backend/resources/application.properties
 backend/temp.properties
 
+*/.*
