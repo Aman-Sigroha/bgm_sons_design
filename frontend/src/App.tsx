@@ -11,6 +11,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import AddProductPage from './pages/AddProductPage';
 import EditProductPage from './pages/EditProductPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
+import WhatsAppButton from './components/layout/WhatsAppButton';
 
 function App() {
   const location = useLocation();
@@ -34,6 +35,7 @@ function App() {
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}
+      {!isAdminRoute && <WhatsAppButton />}
     </div>
   );
 }
