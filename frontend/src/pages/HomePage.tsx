@@ -87,7 +87,7 @@ const HomePage = () => {
             <div className="flex-1 bg-white flex flex-col justify-center p-8 md:p-12">
               <h2 className="text-2xl md:text-3xl font-bold text-blue-900 mb-4 text-center md:text-left">Welcome to BGM Sons Enterprises</h2>
               <p className="text-base md:text-lg text-gray-700 mb-6 text-center md:text-left">
-                For over 25 years, we've been the industry leader in manufacturing high-quality labels, stickers, and branding solutions. Our state-of-the-art facility and dedicated team ensure that we deliver exceptional products tailored to your specific requirements.
+                We've been the industry leader in manufacturing high-quality labels, stickers, and branding solutions. Our state-of-the-art facility and dedicated team ensure that we deliver exceptional products tailored to your specific requirements.
               </p>
               <div className="flex flex-col md:flex-row gap-6 items-center">
                 <img
