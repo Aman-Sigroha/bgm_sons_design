@@ -134,7 +134,7 @@ const ContactPage = () => {
               </div>
               <h3 className="text-xl font-bold text-blue-900 mb-2">Phone</h3>
               <p className="text-gray-700 mb-2">Sales & Support</p>
-              <a href="tel:+1234567890" className="text-blue-700 hover:text-blue-900 font-semibold">+1 (234) 567-890</a>
+              <a href="tel:+917982845161" className="text-blue-700 hover:text-blue-900 font-semibold">+91 79828 45161</a>
             </div>
             
             <div className="bg-blue-50 rounded-lg p-6 text-center flex flex-col items-center">
@@ -143,7 +143,7 @@ const ContactPage = () => {
               </div>
               <h3 className="text-xl font-bold text-blue-900 mb-2">Email</h3>
               <p className="text-gray-700 mb-2">Send us a message</p>
-              <a href="mailto:info@bgmsons.com" className="text-blue-700 hover:text-blue-900 font-semibold">info@bgmsons.com</a>
+              <a href="mailto:bgmsons22@gmail.com" className="text-blue-700 hover:text-blue-900 font-semibold">bgmsons22@gmail.com</a>
             </div>
             
             <div className="bg-blue-50 rounded-lg p-6 text-center flex flex-col items-center">
@@ -153,9 +153,9 @@ const ContactPage = () => {
               <h3 className="text-xl font-bold text-blue-900 mb-2">Address</h3>
               <p className="text-gray-700 mb-2">Our Headquarters</p>
               <address className="not-italic text-blue-700">
-                123 Manufacturing Way,<br />
-                Industrial District,<br />
-                City, State 12345
+                Plot No. 2, Shyam Vihar Phase 2<br />
+                Main Dwarka Road, Najafgarh<br />
+                New Delhi - 110043
               </address>
             </div>
             
@@ -166,8 +166,8 @@ const ContactPage = () => {
               <h3 className="text-xl font-bold text-blue-900 mb-2">Hours</h3>
               <p className="text-gray-700 mb-2">Business Hours</p>
               <p className="text-blue-700">
-                Monday - Friday<br />
-                9:00 AM - 6:00 PM
+                Monday - Saturday<br />
+                9:00 AM - 10:00 PM IST
               </p>
             </div>
           </div>

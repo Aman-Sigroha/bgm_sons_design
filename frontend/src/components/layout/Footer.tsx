@@ -11,7 +11,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <h3 className="text-xl font-bold mb-4">BGM Sons Enterprises</h3>
-            <p className="mb-4">Your trusted partner for high-quality labels, stickers, and branding solutions since 1995.</p>
+            <p className="mb-4">Your trusted partner for high-quality labels, stickers, and branding solutions.</p>
             <div className="flex space-x-4">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-blue-300 transition-colors duration-300">
                 <Facebook size={20} />
@@ -55,15 +55,15 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start">
                 <MapPin className="mr-2 mt-1 flex-shrink-0" size={18} />
-                <span>123 Manufacturing Way, Industrial District, City, State 12345</span>
+                <span>Plot No. 2, Shayam Vihar Phase II, Main Dwarka Road, Najafgarh, New Delhi - 110043</span>
               </li>
               <li className="flex items-center">
                 <Phone className="mr-2 flex-shrink-0" size={18} />
-                <a href="tel:+1234567890" className="hover:text-blue-300 transition-colors duration-300">+1 (234) 567-890</a>
+                <a href="tel:+917982845161" className="hover:text-blue-300 transition-colors duration-300">+91 79828 45161</a>
               </li>
               <li className="flex items-center">
                 <Mail className="mr-2 flex-shrink-0" size={18} />
-                <a href="mailto:info@bgmsons.com" className="hover:text-blue-300 transition-colors duration-300">info@bgmsons.com</a>
+                <a href="mailto:bgmsons22@gmail.com" className="hover:text-blue-300 transition-colors duration-300">bgmsons22@gmail.com</a>
               </li>
             </ul>
           </div>

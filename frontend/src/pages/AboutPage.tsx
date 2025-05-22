@@ -32,7 +32,7 @@ const AboutPage = () => {
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-6">About BGM Sons Enterprises</h1>
           <p className="text-xl max-w-3xl mx-auto">
-            A leading manufacturer of high-quality labels, stickers, and branding solutions since 1995.
+            A leading manufacturer of high-quality labels, stickers, and branding solutions.
           </p>
         </div>
       </section>
@@ -58,10 +58,10 @@ const AboutPage = () => {
             <div>
               <h3 className="text-2xl font-bold text-blue-900 mb-4">From Small Workshop to Industry Leader</h3>
               <p className="text-gray-700 mb-4">
-                Founded in 1995 by the Gupta family, BGM Sons Enterprises began as a small workshop producing simple labels for local businesses. With a commitment to quality and customer satisfaction, the company quickly gained a reputation for excellence.
+                BGM Sons Enterprises began as a small workshop producing simple labels for local businesses. With a commitment to quality and customer satisfaction, the company quickly gained a reputation for excellence.
               </p>
               <p className="text-gray-700 mb-4">
-                Over the years, we invested in cutting-edge technology and expanded our facilities. Today, we operate a state-of-the-art manufacturing plant spanning over 50,000 square feet, equipped with the latest printing and finishing technologies.
+                Over the past 3 years, we invested in cutting-edge technology and expanded our facilities. Today, we operate a state-of-the-art manufacturing plant, equipped with the latest printing and finishing technologies.
               </p>
               <p className="text-gray-700">
                 Our journey has been guided by innovation, quality, and a deep understanding of our customers' needs. From automotive labels to industrial stickers and custom branding solutions, we have diversified our product range while maintaining our core values.
@@ -182,22 +182,10 @@ const AboutPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
               {
-                name: 'Rajesh Gupta',
+                name: 'Brahmanand Mathpal',
                 position: 'Founder & CEO',
                 image: 'https://images.pexels.com/photos/2182970/pexels-photo-2182970.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-                bio: 'With over 30 years of experience in the manufacturing industry, Rajesh has led BGM Sons from its inception to becoming an industry leader.'
-              },
-              {
-                name: 'Priya Sharma',
-                position: 'Chief Operations Officer',
-                image: 'https://images.pexels.com/photos/5905921/pexels-photo-5905921.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-                bio: 'Priya oversees all operational aspects of the company, ensuring efficient processes and timely delivery of high-quality products.'
-              },
-              {
-                name: 'Vikram Singh',
-                position: 'Head of Innovation',
-                image: 'https://images.pexels.com/photos/3778680/pexels-photo-3778680.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2',
-                bio: 'Vikram leads our R&D team, constantly exploring new materials, technologies, and sustainable solutions.'
+                bio: 'With over 30 years of experience in the manufacturing industry, Brahma has led BGM Sons from its inception to becoming an industry leader.'
               }
             ].map((member, index) => (
               <div key={index} className="bg-white rounded-lg shadow-lg overflow-hidden">
