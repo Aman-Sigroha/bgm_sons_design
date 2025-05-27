@@ -29,23 +29,21 @@ const ProductDetailsPage = () => {
   const [submitted, setSubmitted] = useState(false);
 
 useEffect(() => {
-    const controller = new AbortController();
     const fetchProduct = async () => {
        setLoading(true);
        setError('');
        try {
-        const res = await fetch(`/api/products/${id}`, { signal: controller.signal });
+        const res = await fetch(`/api/products/${id}`);
          if (!res.ok) throw new Error('Product not found');
          const data = await res.json();
-        if (!controller.signal.aborted) setProduct(data);
+        setProduct(data);
        } catch (err: any) {
          setError(err.message || 'Error loading product');
        } finally {
-        if (!controller.signal.aborted) setLoading(false);
+        setLoading(false);
        }
      };
     if (id) fetchProduct();
-    return () => controller.abort();
    }, [id]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
