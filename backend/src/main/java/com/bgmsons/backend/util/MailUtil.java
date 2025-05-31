@@ -1,72 +1,132 @@
 package com.bgmsons.backend.util;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 
-import org.springframework.mail.SimpleMailMessage;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import com.bgmsons.backend.model.Product;
 
 /**
  * MailUtil
  */
 public class MailUtil {
 
-  public static SimpleMailMessage createEnquiryMessage(Map<String, String> formData) {
-    SimpleMailMessage msgTemplate = new SimpleMailMessage();
-    msgTemplate.setSubject("New Query Received");
+  private static final String TEMPLATE_PATH = "enquiry-template.html";
 
-    StringBuilder msgBuilder = new StringBuilder(
-        String.format(
-            """
-            Hi Team,
+  private static Document getHtmlDocument() throws IOException {
+    Resource resource = new ClassPathResource(TEMPLATE_PATH);
+    File templateFile = resource.getFile();
+    return Jsoup.parse(templateFile);
+  }
 
-            You have got a new enquiry.\n
-            Enquirer\'s Name: %s
-            Enquirer\'s Email Address: %s
-            """,
-            formData.get("name"),
-            formData.get("email")
-        )
-    );
+  private static Element createTableRow(Document htmlDoc, String key, String value){
+    Element tableRow = htmlDoc.createElement("tr");
 
-    if (formData.containsKey("phone")) {
-      msgBuilder.append(
-          String.format("Enquirer\'s Contact No.: %s\n", formData.get("phone"))
-      );
+    Element tableDataKey = htmlDoc.createElement("td");
+    tableDataKey.attr("style", "padding: 10px; border: 1px solid #dddddd; width: 30%; background-color: #f8f8f8; font-weight: bold;");
+    tableDataKey.text(key);
+
+    Element tableDataValue = htmlDoc.createElement("td");
+    tableDataValue.attr("style","padding: 10px; border: 1px solid #dddddd;");
+    tableDataValue.text(value);
+
+    tableRow.appendChild(tableDataKey);
+    tableRow.appendChild(tableDataValue);
+
+    return tableRow; 
+  }
+
+  public static String createProductEnquiryMessage(Map<String, String> formData) throws IOException {
+    Document htmlDoc = getHtmlDocument();
+
+    htmlDoc.getElementById("enquiry-type").text("New Product Enquiry");
+
+    String customerName = formData.get("name");
+    String customerEmail = formData.get("email");
+    String customerContact = formData.get("phone");
+    String message = formData.get("message");
+
+    Element dateElement = htmlDoc.getElementById("enq-date");
+    dateElement.text(new Date().toString());
+
+    if(!customerName.isEmpty()){
+      htmlDoc.getElementById("cust-name").text(customerName);
     }
 
-    if (formData.containsKey("company")) {
-      msgBuilder.append(
-          String.format("Enquirer\'s Company Name: %s\n", formData.get("company"))
-      );
+    if(!customerEmail.isEmpty()){
+      htmlDoc.getElementById("reply-to").attr("href", "mailto:" + customerEmail);
     }
 
-    msgBuilder.append(
-        String.format("Enquirer\'s Industry: %s\n", formData.get("industry"))
-    );
+    if(!customerContact.isEmpty()){
+      htmlDoc.getElementById("call-now").attr("href", "tel:+91" + customerContact);
+    }
 
-    if (formData.containsKey("product-interest")) {
-      msgBuilder.append(
-          String.format("Product of Interest: %s\n", formData.get("product-interest"))
-      );
+    if(!message.isEmpty()){
+      htmlDoc.getElementById("message").text(formData.get("message"));
+    }
+
+    Element customerNameRow = htmlDoc.getElementById("cust-name");
+    customerNameRow.after(createTableRow(htmlDoc, "Product Link", "http://" + System.getenv("BGM_DOMAIN") + "/products/" + formData.get("productId")));
+
+    return htmlDoc.toString();
+  }
+
+  public static String createEnquiryMessage(Map<String, String> formData) throws IOException {
+    Document htmlDoc = getHtmlDocument();
+
+    htmlDoc.getElementById("enquiry-type").text("New Enquiry");
+
+    String customerName = formData.get("name");
+    String customerEmail = formData.get("email");
+    String customerContact = formData.get("phone");
+    String companyName = formData.get("company");
+    String productInterest = formData.get("productInterest");
+    String industryName = formData.get("industry");
+    String message = formData.get("message");
+
+    Element dateElement = htmlDoc.getElementById("enq-date");
+    dateElement.text(new Date().toString());
+
+    if(!customerName.isEmpty()){
+      htmlDoc.getElementById("cust-name").text(customerName);
+    }
+
+    if(!customerEmail.isEmpty()){
+      htmlDoc.getElementById("reply-to").attr("href", "mailto:" + customerEmail);
+    }
+
+    if(!customerContact.isEmpty()){
+      htmlDoc.getElementById("call-now").attr("href", "tel:+91" + customerContact);
+    }
+    
+    if(!message.isEmpty()){
+      htmlDoc.getElementById("message").text(formData.get("message"));
+    }
+
+    if (!companyName.isEmpty()) {
+      Element companyRow = createTableRow(htmlDoc, "Company", companyName);
+      dateElement.after(companyRow);
+    }
+
+    if (!productInterest.equals("Select Product Interest") && !productInterest.isEmpty()) {
+      Element productInterestRow = createTableRow(htmlDoc, "Product Interest", productInterest);
+      dateElement.after(productInterestRow);
+    }
+
+    if (!industryName.equals("Select Industry") && !industryName.isEmpty()) {
+      Element industryRow = createTableRow(htmlDoc, "Industry", industryName);
+      dateElement.after(industryRow);
     }
 
 
-    msgBuilder.append(
-        String.format(
-          """
-          Query:
-      
-          %s
-
-          Thanks,
-          BGM Auto Mailer
-          """,
-
-          formData.get("message")
-        )
-    );
-
-    msgTemplate.setText(msgBuilder.toString());
-    return msgTemplate;
+    return htmlDoc.toString();
   }
 
 }
