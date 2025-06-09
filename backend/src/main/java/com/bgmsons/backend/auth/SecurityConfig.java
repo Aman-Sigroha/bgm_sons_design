@@ -1,5 +1,7 @@
 package com.bgmsons.backend.auth;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,7 +12,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -63,10 +64,7 @@ public class SecurityConfig {
     daoAuthProvider.setUserDetailsService(new UserDetailsService() {
 		  @Override
 		  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Admin admin = adminRepository.findByUsername(username);
-        if(admin == null){
-          throw new UsernameNotFoundException("Admin User Not Found for username: " + username);
-        }
+        Admin admin = adminRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Username Not Found"));
         return User.builder()
           .username(admin.getUsername())
           .password(admin.getPassword())
