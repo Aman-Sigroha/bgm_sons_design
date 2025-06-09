@@ -12,6 +12,7 @@ import AddProductPage from './pages/AddProductPage';
 import EditProductPage from './pages/EditProductPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
 import WhatsAppButton from './components/layout/WhatsAppButton';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   const location = useLocation();
@@ -29,9 +30,27 @@ function App() {
           <Route path="/industries" element={<IndustriesPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin/login" element={<AdminLoginPage />} />
-          <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-          <Route path="/admin/add-product" element={<AddProductPage />} />
-          <Route path="/admin/edit-product/:id" element={<EditProductPage />} />
+          <Route path="/admin/dashboard" 
+            element={
+              <ProtectedRoute>
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/admin/add-product" 
+            element={
+              <ProtectedRoute>
+                <AddProductPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route path="/admin/edit-product/:id" 
+            element={
+              <ProtectedRoute>
+                <EditProductPage />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </main>
       {!isAdminRoute && <Footer />}
