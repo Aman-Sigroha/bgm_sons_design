@@ -26,38 +26,11 @@ const AdminDashboardPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [isAuthorized, setIsAuthorized] = useState(false);
   const [showEditProductModal, setShowEditProductModal] = useState(false);
   const [editingProduct] = useState<Product | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; productId: string | null }>({ open: false, productId: null });
-  
   const navigate = useNavigate();
-  
-  // Redirect to login if no token
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login');
-      return;
-    }
-    // Verify token with backend
-    fetch('/api/admin/verify', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => {
-        if (res.ok) {
-          setIsAuthorized(true);
-        } else {
-          localStorage.removeItem('adminToken');
-          navigate('/admin/login');
-        }
-      })
-      .catch(() => {
-        localStorage.removeItem('adminToken');
-        navigate('/admin/login');
-      });
-  }, [navigate]);
-  
+
   // Fetch products from backend
   useEffect(() => {
     const fetchProducts = async () => {
@@ -75,8 +48,8 @@ const AdminDashboardPage = () => {
       }
       setIsLoading(false);
     };
-    if (isAuthorized) fetchProducts();
-  }, [isAuthorized]);
+    fetchProducts();
+  }, []);
   
   // Filter products based on search and category
   const filteredProducts = products.filter(product => {
@@ -147,8 +120,6 @@ const AdminDashboardPage = () => {
       </div>
     </div>
   );
-  
-  if (!isAuthorized) return null;
   
   return (
     <div className="min-h-screen bg-gray-100">

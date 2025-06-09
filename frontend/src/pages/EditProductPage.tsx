@@ -26,14 +26,6 @@ const EditProductPage = () => {
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Redirect to login if no token
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login');
-    }
-  }, [navigate]);
-
   useEffect(() => {
     const fetchProduct = async () => {
       setLoading(true);

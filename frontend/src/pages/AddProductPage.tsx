@@ -26,14 +26,6 @@ const AddProductPage = () => {
   const [newCategory, setNewCategory] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
-  // Redirect to login if no token
-  useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      navigate('/admin/login');
-    }
-  }, [navigate]);
-
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
     if (e.target.value === '__add_new__') {
       setShowNewCategoryInput(true);
