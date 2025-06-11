@@ -127,11 +127,11 @@ const Header = () => {
                   className="flex items-center text-blue-900 hover:text-blue-700 font-medium focus:outline-none"
                   onClick={toggleProductsDropdown}
                   aria-haspopup="true"
-                  aria-expanded={isProductsDropdownOpen ? 'true' : 'false'}
+                  aria-expanded={isOverProductButton ? 'true' : 'false'}
                 >
-                  Products <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${isProductsDropdownOpen ? 'rotate-180' : ''}`} />
+                  Products <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${isOverProductButton ? 'rotate-180' : ''}`} />
                 </button>
-                {isProductsDropdownOpen && (
+                {isOverProductButton && (
                   <div className="ml-4 mt-2 space-y-2">
                     {productCategories.map((category) => (
                       <Link
