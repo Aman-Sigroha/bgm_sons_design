@@ -9,11 +9,18 @@ const initialCategories = [
   { value: 'custom', label: 'Custom' },
 ];
 
+const initialSubCategories = [
+  { value: 'warning & safety labels', label: 'Warning & Safety Labels' },
+  { value: 'product branding labels', label: 'Product Branding Labels' },
+  { value: 'equipment tags', label: 'Equipment Tags' },
+  { value: 'custom die-cut labels', label: 'Custom Die-Cut Labels' },
+];
+
 const AddProductPage = () => {
   const [form, setForm] = useState({
     name: '',
     category: 'automotive',
-    subcategory: '',
+    subcategory: 'warning & safety labels',
     images: [''],
     created: new Date().toISOString().slice(0, 10),
     description: '',
@@ -23,8 +30,11 @@ const AddProductPage = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const [categories, setCategories] = useState(initialCategories);
+  const [subcategories, setSubcategories] = useState(initialSubCategories);
   const [newCategory, setNewCategory] = useState('');
+  const [newSubCategory, setNewSubCategory] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [showNewSubCategoryInput, setShowNewSubCategoryInput] = useState(false);
 
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
     if (e.target.value === '__add_new__') {
@@ -32,6 +42,16 @@ const AddProductPage = () => {
     } else {
       setForm({ ...form, category: e.target.value });
       setShowNewCategoryInput(false);
+      setNewCategory('');
+    }
+  };
+
+  const handleSubCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value === '__add_new__') {
+      setShowNewSubCategoryInput(true);
+    } else {
+      setForm({ ...form, subcategory: e.target.value });
+      setShowNewSubCategoryInput(false);
       setNewCategory('');
     }
   };
@@ -46,14 +66,35 @@ const AddProductPage = () => {
     }
   };
 
-  // Image upload handler (placeholder)
+  const handleAddSubCategory = () => {
+    if (newSubCategory.trim() && !subcategories.some(c => c.value === newSubCategory.trim().toLowerCase())) {
+      const newSubCat = { value: newSubCategory.trim().toLowerCase(), label: newSubCategory.trim() };
+      setSubcategories([...subcategories, newSubCat]);
+      setForm({ ...form, subcategory: newSubCat.value });
+      setShowNewSubCategoryInput(false);
+      setNewSubCategory('');
+    }
+  };
+
+  const convertImagetoBase64 = async (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageFile = async (file: File, idx: number) => {
-    // TODO: Replace with real upload logic (e.g., Cloudinary, S3, or backend endpoint)
-    // For now, just use a local URL for preview
-    const url = URL.createObjectURL(file);
     const newImages = [...form.images];
-    newImages[idx] = url;
-    setForm({ ...form, images: newImages });
+    try{
+      const imgString = await convertImagetoBase64(file);
+      newImages[idx] = imgString;
+      setForm({ ...form, images: newImages });
+    }
+    catch (error){
+      setError('Error processing images:', error);
+    }
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -84,9 +125,10 @@ const AddProductPage = () => {
       return;
     }
     try {
+      const token = localStorage.getItem('adminToken');
       const res = await fetch('/api/products', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({
           ...form,
           images: form.images.filter(Boolean),
@@ -116,7 +158,7 @@ const AddProductPage = () => {
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Images Section */}
             <div>
-              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center"><PlusCircle className="mr-2" size={20} /> Product Images</h3>
+              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">Product Images</h3>
               <div className="space-y-3">
                 {form.images.map((img, idx) => (
                   <div key={idx} className="flex items-center gap-4 bg-gray-50 rounded-lg p-2">
@@ -137,7 +179,7 @@ const AddProductPage = () => {
                     )}
                   </div>
                 ))}
-                <button type="button" onClick={handleAddImage} className="flex items-center mt-2 text-blue-900 hover:text-blue-700 font-medium"><PlusCircle size={18} className="mr-1" /> Add Image</button>
+                <button type="button" onClick={handleAddImage} className="flex items-center mt-2 text-blue-900 text-sm hover:text-blue-700 font-medium"><PlusCircle size={12} className="mr-1" /> Add Image</button>
               </div>
             </div>
             {/* Basic Info Section */}
@@ -148,7 +190,7 @@ const AddProductPage = () => {
                   {categories.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
-                  <option value="__add_new__">+ Add new category...</option>
+                  <option value="__add_new__">+ Add New Category...</option>
                 </select>
                 {showNewCategoryInput && (
                   <div className="flex mt-2 gap-2">
@@ -164,6 +206,27 @@ const AddProductPage = () => {
                 )}
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sub Category</label>
+                <select name="subcategory" value={form.subcategory} onChange={handleSubCategoryChange} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  {subcategories.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                  <option value="__add_new__">+ Add New Sub Category...</option>
+                </select>
+                {showNewSubCategoryInput && (
+                  <div className="flex mt-2 gap-2">
+                    <input
+                      type="text"
+                      value={newSubCategory}
+                      onChange={e => setNewSubCategory(e.target.value)}
+                      placeholder="New category name"
+                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+                    <button type="button" onClick={handleAddSubCategory} className="px-3 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800">Add</button>
+                  </div>
+                )}
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
                 <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Enter product name" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
               </div>
@@ -171,6 +234,7 @@ const AddProductPage = () => {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Created Date</label>
                 <input type="date" name="created" value={form.created} onChange={handleChange} placeholder="YYYY-MM-DD" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
               </div>
+
             </div>
             {/* Details Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
