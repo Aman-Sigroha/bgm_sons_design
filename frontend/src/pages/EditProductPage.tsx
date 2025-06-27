@@ -1,12 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, PlusCircle, X } from 'lucide-react';
+import { ArrowLeft, PlusCircle, X, Plus } from 'lucide-react';
 
-const categoryOptions = [
+const initialCategories = [
   { value: 'automotive', label: 'Automotive' },
   { value: 'industrial', label: 'Industrial' },
   { value: 'branding', label: 'Branding' },
   { value: 'custom', label: 'Custom' },
+];
+
+const initialSubCategories = [
+  { value: 'warning & safety labels', label: 'Warning & Safety Labels' },
+  { value: 'product branding labels', label: 'Product Branding Labels' },
+  { value: 'equipment tags', label: 'Equipment Tags' },
+  { value: 'custom die-cut labels', label: 'Custom Die-Cut Labels' },
 ];
 
 const EditProductPage = () => {
@@ -25,6 +32,13 @@ const EditProductPage = () => {
   const [error, setError] = useState('');
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState(initialCategories);
+  const [subcategories, setSubcategories] = useState(initialSubCategories);
+  const [newCategory, setNewCategory] = useState('');
+  const [newSubCategory, setNewSubCategory] = useState('');
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [showNewSubCategoryInput, setShowNewSubCategoryInput] = useState(false);
+  const imgInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -43,7 +57,52 @@ const EditProductPage = () => {
     fetchProduct();
   }, [id]);
 
-  const handleChange = (e: { target: { name: any; value: any; }; }) => {
+
+  const handleAddCategory = () => {
+    if (newCategory.trim() && !categories.some(c => c.value === newCategory.trim().toLowerCase())) {
+      const newCat = { value: newCategory.trim().toLowerCase(), label: newCategory.trim() };
+      setCategories([...categories, newCat]);
+      setForm({ ...form, category: newCat.value });
+      setShowNewCategoryInput(false);
+      setNewCategory('');
+    }
+  };
+
+  const handleAddSubCategory = () => {
+    if (newSubCategory.trim() && !subcategories.some(c => c.value === newSubCategory.trim().toLowerCase())) {
+      const newSubCat = { value: newSubCategory.trim().toLowerCase(), label: newSubCategory.trim() };
+      setSubcategories([...subcategories, newSubCat]);
+      setForm({ ...form, subcategory: newSubCat.value });
+      setShowNewSubCategoryInput(false);
+      setNewSubCategory('');
+    }
+  };
+  
+  const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value === '__add_new__') {
+      setShowNewCategoryInput(true);
+    } else {
+      setForm({ ...form, category: e.target.value });
+      setShowNewCategoryInput(false);
+      setNewCategory('');
+    }
+  };
+
+  const handleSubCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    if (e.target.value === '__add_new__') {
+      setShowNewSubCategoryInput(true);
+    } else {
+      setForm({ ...form, subcategory: e.target.value });
+      setShowNewSubCategoryInput(false);
+      setNewCategory('');
+    }
+  };
+  
+  const handleAddButtonClick = () => {
+    imgInputRef.current?.click();
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     if (name.startsWith('image-')) {
       const idx = parseInt(name.split('-')[1]);
@@ -54,9 +113,28 @@ const EditProductPage = () => {
       setForm({ ...form, [name]: value });
     }
   };
+  
+  const convertImagetoBase64 = async (file: File) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+      reader.readAsDataURL(file);
+    });
+  };
 
-  const handleAddImage = () => {
-    setForm({ ...form, images: [...form.images, ''] });
+  const handleAddImage = async (files: Array<File>) => {
+    try{
+      const fileStrings: Array<string> = new Array(files.length);
+      for (let i=0; i < files.length; ++i){
+        fileStrings[i] = await convertImagetoBase64(files[i]);
+      }
+      const newImages = [...form.images, ...fileStrings];
+      setForm({ ...form, images: newImages });
+    }
+    catch (error){
+      setError('Error processing images:', error);
+    }
   };
 
   const handleRemoveImage = (idx: number) => {
@@ -71,9 +149,10 @@ const EditProductPage = () => {
       return;
     }
     try {
+      const token = localStorage.getItem('adminToken');
       const res = await fetch(`/api/products/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ ...form, images: form.images.filter(Boolean) }),
       });
       if (!res.ok) throw new Error('Failed to update product');
@@ -117,31 +196,34 @@ const EditProductPage = () => {
         <div className="bg-white rounded-2xl shadow-xl p-10 border border-blue-100">
           <h2 className="text-3xl font-bold text-blue-900 mb-8 text-center">Edit Product</h2>
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Images Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center"><PlusCircle className="mr-2" size={20} /> Product Images</h3>
-              <div className="space-y-3">
-                {form.images.map((img, idx) => (
-                  <div key={idx} className="flex items-center gap-4 bg-gray-50 rounded-lg p-2">
-                    <input
-                      type="text"
-                      name={`image-${idx}`}
-                      value={img}
-                      onChange={handleChange}
-                      placeholder={`Image URL #${idx + 1}`}
-                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                    />
-                    {img && (
-                      <img src={img} alt={`Preview ${idx + 1}`} className="h-14 w-14 object-cover rounded border border-gray-200 bg-white" onError={(e) => { if (e.target instanceof HTMLImageElement) e.target.style.display = 'none'; }} />
-                    )}
-                    {form.images.length > 1 && (
-                      <button type="button" onClick={() => handleRemoveImage(idx)} className="text-red-600 hover:text-red-800 p-1 rounded-full" title="Remove image"><X size={18} /></button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" onClick={handleAddImage} className="flex items-center mt-2 text-blue-900 hover:text-blue-700 font-medium"><PlusCircle size={18} className="mr-1" /> Add Image</button>
+            {/* Images Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-7">
+                {form.images.map((img, idx) => 
+                  img && (
+                    <div key={idx} className="flex justify-center items-center h-24 w-24 relative group" onClick={() => handleRemoveImage(idx)}>
+                      <img src={img} alt={`Preview ${idx + 1}`} className="rounded-lg w-full h-full object-cover" onError={(e) => { if (e.target instanceof HTMLImageElement) e.target.style.display = 'none'; }} />
+                      <div className="flex items-center justify-center absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-80 text-red-500 transition-opacity duration-300 rounded-lg">
+                        <X size={26} strokeWidth={2}/>
+                      </div>
+                    </div>
+                  )
+                )}
+                <button onClick={handleAddButtonClick} type="button" className="flex w-24 h-24 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-white text-gray-400 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300 z-10 relative">
+                  <Plus size={26}/>
+                  <input
+                    ref={imgInputRef}
+                    onChange={e => {
+                      if(e.target.files){
+                        handleAddImage(Array.from(e.target.files));
+                      }
+                    }}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                  />
+                </button>
               </div>
-            </div>
             {/* Basic Info Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -150,15 +232,45 @@ const EditProductPage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select name="category" value={form.category} onChange={handleChange} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
-                  {categoryOptions.map(opt => (
+                <select name="category" value={form.category} onChange={handleCategoryChange} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  {categories.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
                   ))}
+                  <option value="__add_new__">+ Add New Category...</option>
                 </select>
+                {showNewCategoryInput && (
+                  <div className="flex mt-2 gap-2">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={e => setNewCategory(e.target.value)}
+                      placeholder="New category name"
+                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+                    <button type="button" onClick={handleAddCategory} className="px-3 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800">Add</button>
+                  </div>
+                )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subcategory</label>
-                <input type="text" name="subcategory" value={form.subcategory} onChange={handleChange} placeholder="Enter subcategory" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sub Category</label>
+                <select name="subcategory" value={form.subcategory} onChange={handleSubCategoryChange} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+                  {subcategories.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                  <option value="__add_new__">+ Add New Sub Category...</option>
+                </select>
+                {showNewSubCategoryInput && (
+                  <div className="flex mt-2 gap-2">
+                    <input
+                      type="text"
+                      value={newSubCategory}
+                      onChange={e => setNewSubCategory(e.target.value)}
+                      placeholder="New category name"
+                      className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                    />
+                    <button type="button" onClick={handleAddSubCategory} className="px-3 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800">Add</button>
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Created Date</label>
