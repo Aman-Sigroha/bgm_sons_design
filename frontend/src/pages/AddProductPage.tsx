@@ -1,6 +1,6 @@
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent , useRef} from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, PlusCircle, X } from 'lucide-react';
+import { ArrowLeft, PlusCircle, X , Plus} from 'lucide-react';
 
 const initialCategories = [
   { value: 'automotive', label: 'Automotive' },
@@ -35,6 +35,7 @@ const AddProductPage = () => {
   const [newSubCategory, setNewSubCategory] = useState('');
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [showNewSubCategoryInput, setShowNewSubCategoryInput] = useState(false);
+  const imgInputRef = useRef<HTMLInputElement>(null);
 
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
     if (e.target.value === '__add_new__') {
@@ -85,16 +86,22 @@ const AddProductPage = () => {
     });
   };
 
-  const handleImageFile = async (file: File, idx: number) => {
-    const newImages = [...form.images];
+  const handleAddImage = async (files: Array<File>) => {
     try{
-      const imgString = await convertImagetoBase64(file);
-      newImages[idx] = imgString;
+      const fileStrings: Array<string> = new Array(files.length);
+      for (let i=0; i < files.length; ++i){
+        fileStrings[i] = await convertImagetoBase64(files[i]);
+      }
+      const newImages = [...form.images, ...fileStrings];
       setForm({ ...form, images: newImages });
     }
     catch (error){
       setError('Error processing images:', error);
     }
+  };
+  
+  const handleAddButtonClick = () => {
+    imgInputRef.current?.click();
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -107,10 +114,6 @@ const AddProductPage = () => {
     } else {
       setForm({ ...form, [name]: value });
     }
-  };
-
-  const handleAddImage = () => {
-    setForm({ ...form, images: [...form.images, ''] });
   };
 
   const handleRemoveImage = (idx: number) => {
@@ -157,33 +160,39 @@ const AddProductPage = () => {
           <h2 className="text-3xl font-bold text-blue-900 mb-8 text-center">Add New Product</h2>
           <form onSubmit={handleSubmit} className="space-y-8">
             {/* Images Section */}
-            <div>
-              <h3 className="text-lg font-semibold text-blue-800 mb-2 flex items-center">Product Images</h3>
-              <div className="space-y-3">
-                {form.images.map((img, idx) => (
-                  <div key={idx} className="flex items-center gap-4 bg-gray-50 rounded-lg p-2">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={e => {
-                        if (e.target.files && e.target.files[0]) handleImageFile(e.target.files[0], idx);
-                      }}
-                      className="block text-sm text-gray-500"
-                      title="Choose image file"
-                    />
-                    {img && (
-                      <img src={img} alt={`Preview ${idx + 1}`} className="h-14 w-14 object-cover rounded border border-gray-200 bg-white" onError={e => { const t = e.target as HTMLImageElement; t.style.display = 'none'; }} />
-                    )}
-                    {form.images.length > 1 && (
-                      <button type="button" onClick={() => handleRemoveImage(idx)} className="text-red-600 hover:text-red-800 p-1 rounded-full" title="Remove image"><X size={18} /></button>
-                    )}
-                  </div>
-                ))}
-                <button type="button" onClick={handleAddImage} className="flex items-center mt-2 text-blue-900 text-sm hover:text-blue-700 font-medium"><PlusCircle size={12} className="mr-1" /> Add Image</button>
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-7">
+                {form.images.map((img, idx) => 
+                  img && (
+                    <div key={idx} className="flex justify-center items-center h-24 w-24 relative group" onClick={() => handleRemoveImage(idx)}>
+                      <img src={img} alt={`Preview ${idx + 1}`} className="rounded-lg w-full h-full object-cover" onError={(e) => { if (e.target instanceof HTMLImageElement) e.target.style.display = 'none'; }} />
+                      <div className="flex items-center justify-center absolute inset-0 bg-red-50 opacity-0 group-hover:opacity-80 text-red-500 transition-opacity duration-300 rounded-lg">
+                        <X size={26} strokeWidth={2}/>
+                      </div>
+                    </div>
+                  )
+                )}
+                <button onClick={handleAddButtonClick} type="button" className="flex w-24 h-24 items-center justify-center rounded-lg border-2 border-dashed border-gray-400 bg-white text-gray-400 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300 z-10 relative">
+                  <Plus size={26}/>
+                  <input
+                    ref={imgInputRef}
+                    onChange={e => {
+                      if(e.target.files){
+                        handleAddImage(Array.from(e.target.files));
+                      }
+                    }}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                  />
+                </button>
               </div>
-            </div>
             {/* Basic Info Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Enter product name" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <select name="category" value={form.category} onChange={handleCategoryChange} className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
@@ -225,10 +234,6 @@ const AddProductPage = () => {
                     <button type="button" onClick={handleAddSubCategory} className="px-3 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800">Add</button>
                   </div>
                 )}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
-                <input type="text" name="name" value={form.name} onChange={handleChange} placeholder="Enter product name" className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Created Date</label>
